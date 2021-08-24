@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 118fefd504ee7d646a5353c1e837dc1f, type: 3}
+  m_Name: SortedCubeSharedData
+  m_EditorClassIdentifier: 
+  materialSharedData: {fileID: 11400000, guid: f0a737bfc3a4b4a4fb61a54b31d6bb1c, type: 2}
+  digitPrefabs:
+  - {fileID: 7679469474542532815, guid: 0e9f7e529924ad444bfdae002fdb3f9a, type: 3}
+  - {fileID: 1699433597793159178, guid: 83b3bc8a93ae6bb4eb7b84bf8273ef18, type: 3}
+  - {fileID: 5552105954752669352, guid: 0fed61847e7dfd846b7e23863ed2d491, type: 3}
+  - {fileID: 7186768696379465588, guid: 01040efa9d4276f4c9c523ca8d4c5252, type: 3}
+  - {fileID: 5154190760387346241, guid: 523bb2b512fe1e046bad369d31c39a64, type: 3}
+  - {fileID: 3394027681642194993, guid: dd963f21dd129d14a8bb8310508ce35a, type: 3}
+  - {fileID: 4865828836273753216, guid: eb2c36f30425ac845a365ae417eafc7a, type: 3}
+  - {fileID: 1684483520848618121, guid: d1496128b5e40c140883c1ec0b011e09, type: 3}
+  - {fileID: 7518673605789385509, guid: 9537b96e343409642ab5a88af4e53e19, type: 3}
+  - {fileID: 5601084668976612946, guid: e2503a0328b614341a58d90d896e29ee, type: 3}
+  digitOffsetPosition: {x: 0, y: 0, z: -0.25}
+  digitRotation: {x: 0, y: 0, z: 0}
+  twoDigitsDisplacementFromOffsetPosition: {x: 0.115, y: 0, z: 0}
