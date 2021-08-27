@@ -1,25 +1,17 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace SortingAlgorithms
 {
     public sealed class QuickSortSorter<T, TComparer> : ISorter<T>
-        where TComparer : IComparer<T> 
+        where TComparer : IComparer<T>
     {
         private readonly T[] items;
         private readonly TComparer comparer;
+        private readonly Stack<IEnumerator> sortStepEnumeratorStack;
         private bool isSorted;
         private int comparisonCount;
-        private int currentStep;
-        private int i;
-        private int start;
-        private int end;
-        private T partitionP;
-        private T partitionTemp;
-        private int partitionI;
-        private int partitionJ;
-        private int partitionStart;
-        private int partitionEnd;
 
         public bool IsSorted => isSorted;
 
@@ -39,8 +31,8 @@ namespace SortingAlgorithms
         {
             this.items = items;
             this.comparer = comparer;
-            start = 0;
-            end = items.Length - 1;
+            sortStepEnumeratorStack = new Stack<IEnumerator>(capacity: items.Length);
+            sortStepEnumeratorStack.Push(CreateQuickSortEnumerator(start: 0, end: items.Length - 1));
         }
 
         public void NextStep()
@@ -49,60 +41,68 @@ namespace SortingAlgorithms
             {
                 return;
             }
-            isSorted = true;
-
-            switch (currentStep)
+            if (sortStepEnumeratorStack.Count == 0)
             {
-                case 0:
-                    return;
+                isSorted = true;
+                SequenceSorted?.Invoke();
+                return;
             }
+            sortStepEnumeratorStack.Peek().MoveNext();
         }
 
-        private void QuickSort()
+        private IEnumerator CreateQuickSortEnumerator(int start, int end)
         {
-            comparisonCount++;
-
             if (start < end)
             {
-                partitionStart = start;
-                partitionEnd = end;
-                Partition();
+                T temp;
+                T p = items[end];
+                int i = start - 1;
 
-                end = i - 1;
-                QuickSort();
-                start = i + 1;
-                QuickSort();
-            }
-        }
-
-        private void Partition()
-        {
-            partitionP = items[partitionEnd];
-            ItemMovedToForeground?.Invoke((partitionP, partitionEnd));
-            comparisonCount++;
-
-            for (partitionJ = partitionStart; partitionJ <= partitionEnd - 1; partitionJ++)
-            {
-                comparisonCount++;
-
-                if (comparer.Compare(items[partitionJ], partitionP) <= 0)
+                for (int j = start; j <= end - 1; j++)
                 {
-                    partitionI++;
-                    partitionTemp = items[partitionI];
-                    ItemMovedToForeground?.Invoke((partitionTemp, partitionI));
-                    items[partitionI] = items[partitionJ];
-                    ItemMovedToForeground?.Invoke((items[partitionI], partitionJ));
-                    items[partitionJ] = partitionTemp;
-                    ItemMovedToForeground?.Invoke((items[partitionJ], partitionI));
+                    comparisonCount++;
+
+                    if (comparer.Compare(items[j], p) <= 0)
+                    {
+                        i++;
+                        temp = items[i];
+                        ItemMovedToBackground?.Invoke((temp, i));
+                        yield return null;
+
+                        items[i] = items[j];
+                        ItemMovedToForeground?.Invoke((items[i], i));
+                        yield return null;
+
+                        items[j] = temp;
+                        ItemMovedToForeground?.Invoke((temp, j));
+                        yield return null;
+                    }
                 }
+
+                temp = items[i + 1];
+                ItemMovedToBackground?.Invoke((temp, i + 1));
+                yield return null;
+
+                items[i + 1] = items[end];
+                ItemMovedToForeground?.Invoke((items[i + 1], i + 1));
+                yield return null;
+
+                items[end] = temp;
+                ItemMovedToForeground?.Invoke((temp, end));
+                yield return null;
+                i++;
+
+                sortStepEnumeratorStack.Push(CreateQuickSortEnumerator(start, i - 1));
+                yield return null;
+
+                sortStepEnumeratorStack.Push(CreateQuickSortEnumerator(i + 1, end));
+                yield return null;
             }
-            partitionTemp = items[partitionI + 1];
-            ItemMovedToForeground?.Invoke((partitionTemp, partitionI + 1));
-            items[partitionI + 1] = items[partitionEnd];
-            ItemMovedToForeground?.Invoke((items[partitionI + 1], partitionEnd));
-            items[partitionEnd] = partitionTemp;
-            ItemMovedToForeground?.Invoke((items[partitionEnd], partitionI + 1));
-            i = partitionI + 1;
+            for (int i = start; i <= end; i++)
+            {
+                ItemSorted?.Invoke((items[i], i));
+            }
+            sortStepEnumeratorStack.Pop();
         }
 
         // Algorithm reference
