@@ -5,17 +5,13 @@ using System.Collections.Generic;
 namespace SortingAlgorithms
 {
     public sealed class InsertionSortSorter<T, TComparer> : ISorter<T>
-        where TComparer : IComparer<T> 
+        where TComparer : IComparer<T>
     {
         private readonly T[] items;
         private readonly TComparer comparer;
+        private readonly IEnumerator sortStepEnumerator;
         private bool isSorted;
         private int comparisonCount;
-        private ItemIndexPair<T> key;
-        private int i;
-        private int j;
-        private readonly BitArray backgroundedItems;
-        private int currentStep;
 
         public bool IsSorted => isSorted;
 
@@ -35,8 +31,7 @@ namespace SortingAlgorithms
         {
             this.items = items;
             this.comparer = comparer;
-            i = 1;
-            backgroundedItems = new BitArray(items.Length);
+            sortStepEnumerator = CreateInsertionSortEnumerator();
         }
 
         public void NextStep()
@@ -45,84 +40,74 @@ namespace SortingAlgorithms
             {
                 return;
             }
-            switch (currentStep)
-            {
-                case 0:
-                    Step0();
-                    return;
-                case 1:
-                    Step1();
-                    return;
-                case 2:
-                    Step2();
-                    return;
-                case 3:
-                    Step3();
-                    return;
-            }
+            sortStepEnumerator.MoveNext();
         }
 
-        private void Step0()
+        private IEnumerator CreateInsertionSortEnumerator()
         {
-            comparisonCount++;
+            int keyIndex = 0;
 
-            if (i < items.Length)
+            for (int i = 1; i < items.Length; ++i)
             {
-                currentStep = 1;
-                return;
-            }
-            for (int i = items.Length - 1; i >= 0; i--)
-            {
-                var itemIndexPair = new ItemIndexPair<T>(items[i], i);
+                T key = items[i];
+                int j = i - 1;
 
-                if (backgroundedItems[i])
+                if (j >= 0 && comparer.Compare(items[j], key) > 0)
                 {
-                    ItemMovedToForeground?.Invoke(itemIndexPair);
+                    do
+                    {
+                        comparisonCount++;
+                        ItemsCompared?.Invoke((items[j], j), (key, i));
+                        yield return null;
+
+                        ItemMovedToBackground?.Invoke((items[j + 1], j + 1));
+                        yield return null;
+
+                        items[j + 1] = items[j];
+
+                        ItemMovedToForeground?.Invoke((items[j + 1], j + 1));
+                        yield return null;
+                        j--;
+                    }
+                    while (j >= 0 && comparer.Compare(items[j], key) > 0);
                 }
-                ItemSorted?.Invoke(itemIndexPair);
+                else
+                {
+                    comparisonCount++;
+                    ItemsCompared?.Invoke((items[j], j), (key, i));
+                }
+                ItemMovedToBackground?.Invoke((items[j + 1], j + 1));
+                yield return null;
+
+                items[j + 1] = key;
+
+                ItemMovedToForeground?.Invoke((key, j + 1));
+                yield return null;
+
+
+                if (keyIndex != (j + 1))
+                {
+                    UnityEngine.Debug.Log(keyIndex);
+
+                    for (int k = j + 1; k >= keyIndex; k--)
+                    {
+                        ItemMovedToForeground?.Invoke((items[k], k));
+                        yield return null;
+                    }
+                    keyIndex = j + 1;
+                }
+            }
+            for (int i = items.Length - 1; i >= keyIndex; i--)
+            {
+                ItemMovedToForeground?.Invoke((items[i], i));
+                yield return null;
+            }
+            for (int i = 0; i < items.Length; i++)
+            {
+                ItemSorted?.Invoke((items[i], i));
             }
             isSorted = true;
             SequenceSorted?.Invoke();
-        }
-
-        private void Step1()
-        {
-            key = (items[i], i);
-            j = i - 1;
-
-            currentStep = 2;
-        }
-
-        private void Step2()
-        {
-            comparisonCount++;
-
-            if (j >= 0)
-            {
-                ItemsCompared?.Invoke((items[j], j), key);
-            }
-            if (j >= 0 && comparer.Compare(items[j], key.Item) > 0)
-            {
-                ItemMovedToBackground?.Invoke((items[j + 1], j + 1));
-                backgroundedItems[j] = true;
-                items[j + 1] = items[j];
-                ItemMovedToForeground?.Invoke((items[j], j + 1));
-                j--;
-
-                currentStep = 2;
-                return;
-            }
-            currentStep = 3;
-        }
-
-        private void Step3()
-        {
-            ItemMovedToBackground?.Invoke((items[j + 1], j + 1));
-            backgroundedItems[key.Index] = true;
-            items[j + 1] = key.Item;
-            ItemMovedToForeground?.Invoke((key.Item, j + 1));
-            i++;
-            currentStep = 0;
         }
 
         // Algorithm reference
