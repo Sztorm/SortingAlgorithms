@@ -61,6 +61,7 @@ namespace SortingAlgorithms
                 for (int j = start; j <= end - 1; j++)
                 {
                     comparisonCount++;
+                    ItemsCompared?.Invoke((items[j], j), (p, end));
 
                     if (comparer.Compare(items[j], p) <= 0)
                     {
