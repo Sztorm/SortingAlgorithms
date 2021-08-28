@@ -30,7 +30,7 @@ namespace SortingAlgorithms
         private SortingManager sortingManager;
 
         [SerializeField]
-        private RobotAnimator robotAnimator;
+        private RobotController robotController;
 
         public Vector2 PointerPosition => pointerPosition;
 
@@ -38,7 +38,7 @@ namespace SortingAlgorithms
 
         public SortingManager SortingManager => sortingManager;
 
-        public RobotAnimator RobotAnimator => robotAnimator;
+        public RobotController RobotController => robotController;
 
         public event Action GamePaused;
 
@@ -106,18 +106,22 @@ namespace SortingAlgorithms
         private void OnItemsCompared(
             ItemIndexPair<SortedCubeBehaviour> cube1, ItemIndexPair<SortedCubeBehaviour> cube2)
         {
-            robotAnimator.Destination = robotAnimator.OffsetFromTable + Vector3.LerpUnclamped(
+            Vector3 destination = robotController.OffsetFromTable + Vector3.LerpUnclamped(
                 cube1.Item.transform.position, cube2.Item.transform.position, 0.5F);
+
+            robotController.Walk(destination);
         }
 
         private void OnItemMovedToForeground(ItemIndexPair<SortedCubeBehaviour> cube)
         {
-            robotAnimator.Destination = robotAnimator.OffsetFromTable + cube.Item.transform.position;
+            Vector3 destination = robotController.OffsetFromTable + cube.Item.transform.position;
+            robotController.Walk(destination);
         }
 
         private void OnItemMovedToBackground(ItemIndexPair<SortedCubeBehaviour> cube)
         {
-            robotAnimator.Destination = robotAnimator.OffsetFromTable + cube.Item.transform.position;
+            Vector3 destination = robotController.OffsetFromTable + cube.Item.transform.position;
+            robotController.Walk(destination);
         }
 
         public void PauseGame()
